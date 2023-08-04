@@ -26,6 +26,7 @@
     <ProjectReference Include="..\Hekaton\Hekaton.csproj" />
   </ItemGroup>
 
+  <!-- Copy fixtures on post build -->
   <Target Name="CopyFixtures" AfterTargets="Build">
     <ItemGroup>
       <Fixtures Include="$(ProjectDir)\Manifests\*.*"/>

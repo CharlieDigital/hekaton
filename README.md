@@ -44,3 +44,11 @@ It is built around the concept of `Scenario`s  which represent the actions in a 
 In most applications, there are actions performed by multiple roles within the system.  These different roles perform different actions that have an effect on the performance profile of a system.
 
 For example, a content management system (CMS) will have publishers creating new content and consumers reading the published content.  These users will operate on different frequencies.  Ideally, we can easily model the load where 10% of the users are performing a publish operation while 90% of the users are reading the published content to simulate our actual traffic distribution.
+
+## Development
+
+```shell
+# Run tests from root
+dotnet test
+
+```

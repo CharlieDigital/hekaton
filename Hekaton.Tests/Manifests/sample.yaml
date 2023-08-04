@@ -25,7 +25,9 @@ scenarios:
   - name: This is the name of step 1
     type: HttpGet                     # The type of the step; default is HttpGet
     url: https://www.google.com       # The URL to execute for the step
-    generates: "./step1-requests.csv" # Additional requests (e.g. images) to generate
+    generates: # Additional requests (e.g. images) to generate
+    - "http://example.com/images/logo.gif"
+    - "http://example.com/static/app.js"
   - name: This is the name of step 2
     type: HttpGet
     url: https://www.google.com
