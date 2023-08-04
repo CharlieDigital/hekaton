@@ -1,0 +1,85 @@
+---
+
+name: This is the name of the test
+# Base URL to simplify downstream URLs
+baseUrl: https://www.google.com
+
+# A series of independent scenarios.  Each scenario represents a logical flow
+# or user journey through the system.
+scenarios:
+- name: Scenario 1
+  delay: 3s # Delay when this scenario starts.
+
+  # The number of instances of this scenario.
+  vusers:
+    initial: 5          # The initial number of concurrent users when the scenarios starts
+    max: 10             # The maximum number of users when the scenario
+    ramp:               # Defines the ramping profile for the users
+      every: 10s        # Every x interval
+      variation: 0.25   # With a variation of +/- %
+      add: 1            # Add how many users?
+
+  # The steps to execute sequentially for this scenario
+  steps:
+    # The name of the step
+  - name: This is the name of step 1
+    type: HttpGet                     # The type of the step; default is HttpGet
+    url: https://www.google.com       # The URL to execute for the step
+    generates: "./step1-requests.csv" # Additional requests (e.g. images) to generate
+  - name: This is the name of step 2
+    type: HttpGet
+    url: https://www.google.com
+
+
+- name: Scenario 2
+  delay: 100s
+  vusers:
+    initial: 1
+    max: 20
+    ramp:
+      every: 10s
+      variation: 0.25
+      add: 2
+
+  # This defines the default pause between each step for this scenario.  Each
+  # Step can override this and define a pause after the step
+  pause:
+    duration: 3s
+    variation: 0.15
+  steps:
+  - name: This is the name of step 1
+    type: HttpPost
+
+    # Defines a source of rows. Each row is assigned to one user
+    rows:
+      source: "./users.csv"       # The source CSV
+      read: InOrder               # Either InOrder or Random read
+      columns:                    # Defines the column order and parameters name
+      - username
+      - password
+    url: https://www.myapp.com/login
+
+    # Headers to use for this HTTP request
+    headers:
+      Content-type: application/json
+
+    # The body of this HTTP request.  Note that it can accept parameters using __
+    body: "{ username: __username, password: __password }"
+
+    # Step level pause duration
+    pause:
+      duration: 10s
+      variation: 0.05
+
+    # Extract values from the response and assign to variables that can be used
+    # in subsequent steps in the scope of this virtual user.
+    response:
+      headers:
+        __auth: Authorization           # Assign the Authorization header to __auth
+      cookies:
+        __all: ''                       # A special assignment that contains all cookies
+        __someVar: cookieName           # Assigned a specific cookie
+
+  - name: This is the name of step 2
+    type: HttpGet
+    url: https://www.google.com
