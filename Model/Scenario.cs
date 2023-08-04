@@ -7,6 +7,8 @@ public class Scenario {
 
   public Vusers? Vusers { get; set; }
 
+  public Rows? Rows { get; set; }
+
   public Pause? Pause { get; set; }
 
   public List<Step> Steps { get; set; } = new();

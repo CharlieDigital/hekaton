@@ -41,6 +41,14 @@ scenarios:
       variation: 0.25
       add: 2
 
+  # Defines a source of rows. Each row is assigned to one user
+  rows:
+    source: "./users.csv"       # The source CSV
+    read: InOrder               # Either InOrder or Random read
+    columns:                    # Defines the column order and parameters name
+    - username
+    - password
+
   # This defines the default pause between each step for this scenario.  Each
   # Step can override this and define a pause after the step
   pause:
@@ -49,14 +57,6 @@ scenarios:
   steps:
   - name: This is the name of step 1
     type: HttpPost
-
-    # Defines a source of rows. Each row is assigned to one user
-    rows:
-      source: "./users.csv"       # The source CSV
-      read: InOrder               # Either InOrder or Random read
-      columns:                    # Defines the column order and parameters name
-      - username
-      - password
     url: https://www.myapp.com/login
 
     # Headers to use for this HTTP request
