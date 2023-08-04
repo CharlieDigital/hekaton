@@ -10,7 +10,7 @@ Hekaton is a CLI performance testing tool that uses scenarios defined in YAML.
 
 After searching for easy to use, lightweight open source tools for performance testing, I found that most tools fell into two categories:
 
-1. **Too basic**; focused on raw load testing and do not simulate real user flows
+1. **Too basic**; focused on raw *load testing* and do not simulate real user flows
 2. **Too complex**; designed for dedicated performance testing teams and difficult to adopt for small to medium sized teams
 
 Hekaton is designed for the middle ground with a focus on simplicity (define test scenarios in a YAML file) while being more than just a simple load testing tool (model user journeys).
@@ -38,3 +38,9 @@ It is built around the concept of `Scenario`s  which represent the actions in a 
 |`VUser`|A virtual user represents one user performing the `Scenario`.|
 |`Row`|`VUser`s can be generated dynamically or defined in an input CSV file (e.g. usernames, email, passwords, etc.)|
 |`Pause`|Simulates how real users behave when interacting with the system.  Users will pause, read, scroll, and make decisions before acting.|
+
+## Why Scenarios
+
+In most applications, there are actions performed by multiple roles within the system.  These different roles perform different actions that have an effect on the performance profile of a system.
+
+For example, a content management system (CMS) will have publishers creating new content and consumers reading the published content.  These users will operate on different frequencies.  Ideally, we can easily model the load where 10% of the users are performing a publish operation while 90% of the users are reading the published content to simulate our actual traffic distribution.
