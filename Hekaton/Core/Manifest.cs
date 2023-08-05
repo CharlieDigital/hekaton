@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 using Hekaton.Models;
 using Hekaton.Utility;
@@ -10,7 +11,6 @@ namespace Hekaton.Core;
 /// wrapper around the underlying test definition.
 /// </summary>
 public class Manifest {
-
   /// <summary>
   /// Private constructor; use one of the <c>Load</c> methods to create an instance.
   /// </summary>
@@ -22,6 +22,17 @@ public class Manifest {
   /// Getter for the test loaded from the manifest.
   /// </summary>
   public Test Test { get; }
+
+  /// <summary>
+  /// The scenario runtimes for this manifest which are resolved by hydrating the
+  /// virtual user instances from the scenario definition.
+  /// </summary>
+  public List<ScenarioRuntime> ScenarioRuntimes { get; } = new();
+
+  /// <summary>
+  /// The list of tasks that are started for the runtimes.
+  /// </summary>
+  public List<Task> ScenarioTasks { get; } = new();
 
   /// <summary>
   /// Loads a manifest using a fully qualified file path.  This pattern will allow
@@ -62,19 +73,53 @@ public class Manifest {
   /// <summary>
   /// Prepares the test case in the manifest by creating the artifacts required to
   /// execute but does not start the execution.
+  ///
+  /// All of the scenarios instances are created at the outset; however they are all
+  /// delayed according to their computed start time based on the delay, VUser, and
+  /// ramp configurations.
   /// </summary>
   public Manifest Prepare() {
-    var channel = Channel.CreateUnbounded<StepEvent>();
-    var writer = channel.Writer;
-    var reader = channel.Reader;
-
-    // For each scenario in the manifest, we will create a set of runtime instances
-    // based on the VUser specification.
     foreach (var scenario in Test.Scenarios) {
-
+      ScenarioRuntimes.AddRange(ResolveScenarioRuntimes(scenario));
     }
 
     return this;
+  }
+
+  /// <summary>
+  /// Runs the test definition that is represented by the manifest.
+  /// </summary>
+  /// <returns>
+  /// The duration of the test in milliseconds.
+  /// </returns>
+  public async Task<TimeSpan> RunAsync() {
+    var channel = Channel.CreateUnbounded<ScenarioEvent>();
+    var writer = channel.Writer;
+    var reader = channel.Reader;
+
+    var metrics = new MetricsCollector(Test.Collector, Test.Renderer);
+
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+
+    // Start the metrics collector so it is ready to consume events
+    await metrics.StartAsync(reader);
+
+    // Start the scenarios in parallel.
+    Parallel.ForEach(ScenarioRuntimes,
+      new() {
+        MaxDegreeOfParallelism = Environment.ProcessorCount * 10
+      },
+      r => ScenarioTasks.Add(r.InitAsync(writer))
+    );
+
+    await Task
+      .WhenAll(ScenarioTasks)
+      .ContinueWith(_ => writer.Complete());
+
+    stopwatch.Stop();
+
+    return TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds);
   }
 
   /// <summary>
@@ -88,7 +133,7 @@ public class Manifest {
 
     // Return a single runtime instance.
     if (scenario.Vusers == null) {
-      yield return new(scenarioDelay);
+      yield return new(scenario, scenarioDelay);
       yield break; // !EXIT
     }
 
@@ -96,7 +141,7 @@ public class Manifest {
     if (scenario.Vusers.Max <= scenario.Vusers.Initial
       || scenario.Vusers.Ramp == null) {
       for (var i = 0; i < scenario.Vusers.Initial; i++) {
-        yield return new(scenarioDelay);
+        yield return new(scenario, scenarioDelay, i);
       }
 
       yield break; // !EXIT
@@ -111,7 +156,7 @@ public class Manifest {
     for (var i = 0; i < scenario.Vusers.Max; i++) {
       if (i < scenario.Vusers.Initial) {
         // The initial users get created using the scenario delay.
-        yield return new(scenarioDelay);
+        yield return new(scenario, scenarioDelay, i);
       } else {
         // The subsequent set of users get added with the ramp strategy.
         if (i > rampThreshold) {
@@ -126,7 +171,7 @@ public class Manifest {
               scenario.Vusers.Ramp.Variation
             );
 
-        yield return new(computedDelay);
+        yield return new(scenario, computedDelay, i);
       }
     }
   }

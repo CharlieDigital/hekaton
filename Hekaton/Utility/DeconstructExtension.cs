@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 
+namespace Hekaton.Utility;
+
 /// <summary>
 /// https://themuuj.com/blog/2020/08/csharp-collection-deconstructing/
 /// </summary>

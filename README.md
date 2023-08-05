@@ -27,7 +27,10 @@ baseUrl: https://www.example.com
 # A series of independent scenarios.  Each scenario represents a logical flow
 # or user journey through the system.
 scenarios:
+
+# First scenario is an external user browsing the page. Up to 100 users.
 - name: User Browsing Landing Page
+
   vusers:
     initial: 5                          # Start the scenario with 5 users
     max: 100                            # And create up to a total of 100 users
@@ -36,19 +39,28 @@ scenarios:
       variation: 0.25                   # With a variation of up to 25%
       add: 1                            # Add 1 user until reaching 10 total
 
+  pause:
+    duration: 7s                        # By default, pause 7 seconds after each step
+    variation: 0.25                     # With a variation of up to 25%
+
   steps:
+
   - name: Load Page
     type: HttpGet                       # The type of the step; default is HttpGet
     url: https://www.example.com        # Browse this URL
     generates:                          # Generate these additional requests.
     - "/images/logo.png"                # Uses base URL
     - "http://cdn.example.com/static/app.js"
+
   - name: Navigate Product Detail Page
     type: HttpGet
     url: https://www.example.com/p/123456
 
+# Second scenario is an admin user logging into the back-end.  Up to 5 users.
 - name: Admin User Scenario
+
   delay: 100s                           # Delay the start of this scenario 100 seconds
+
   vusers:
     initial: 1                          # Start the scenario wit1 user
     max: 5                              # And create up to a total of 5 users
@@ -67,6 +79,7 @@ scenarios:
   pause:
     duration: 5s                        # By default, pause 5 seconds after each step
     variation: 0.15                     # With a variation of up to 15%
+
   steps:
   - name: Admin User Login
     type: HttpPost
@@ -75,8 +88,9 @@ scenarios:
     headers:
       Content-type: application/json    # Include these headers
 
-    # Include this body with variable substitution
-    body: "{ username: __username, password: __password }"
+    # Include this body with variable substitution with the column values from the
+    # CSV that contains the rows.
+    body: "{ username: ___username, password: ___password }"
 
     pause:                              # Override the default 5s pause
       duration: 10s
@@ -86,16 +100,17 @@ scenarios:
     # in subsequent steps in the scope of this virtual user.
     response:
       headers:
-        __auth: Authorization           # Assign the Authorization header to __auth
+        ___auth: Authorization           # Assign the Authorization header to __auth
       cookies:
-        __all: ''                       # A special assignment that contains all cookies
-        __someVar: cookieName           # Assigned a specific cookie
+        ___all: ''                       # A special assignment that contains all cookies
+        ___someVar: cookieName           # Assigned a specific cookie
 
   - name: API Call Post Login
     type: HttpGet
     url: /api/load-user-data?page=0&size=25
+
     headers:
-      Authorization: __auth             # Include these headers
+      Authorization: ___auth             # Include these headers
 ```
 
 ## Objectives

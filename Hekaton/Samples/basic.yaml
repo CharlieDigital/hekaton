@@ -1,0 +1,27 @@
+name: Basic Performance Test
+# Base URL to simplify downstream URLs
+baseUrl: https://www.example.com
+
+scenarios:
+- name: User Browsing Landing Page
+  vusers:
+    initial: 1
+
+  steps:
+  - name: Load Page
+    type: HttpGet
+    url: /
+
+  - name: Navigate Product Detail Page
+    type: HttpGet
+    url: /p/123456
+
+- name: Admin User Scenario
+  delay: 5s
+  vusers:
+    initial: 1
+
+  steps:
+  - name: Admin User Login
+    type: HttpPost
+    url: /login
