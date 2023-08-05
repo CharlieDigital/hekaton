@@ -11,5 +11,5 @@ namespace Hekaton;
 public class RuntimeOptions {
   [NotNull]
   [Option('f', "filename", Required = true, HelpText = "Name of manifest YAML file.")]
-  public string FileName { get; set; }
+  public string FileName { get; set; } = "";
 }

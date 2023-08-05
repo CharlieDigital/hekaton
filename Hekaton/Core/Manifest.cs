@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Threading.Channels;
-using Hekaton.Models;
-using Hekaton.Utility;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -103,7 +101,7 @@ public class Manifest {
     stopwatch.Start();
 
     // Start the metrics collector so it is ready to consume events
-    await metrics.StartAsync(reader);
+    var metricsTask = metrics.StartAsync(reader);
 
     // Start the scenarios in parallel.
     Parallel.ForEach(ScenarioRuntimes,
@@ -113,11 +111,16 @@ public class Manifest {
       r => ScenarioTasks.Add(r.InitAsync(writer))
     );
 
+    Console.WriteLine(ScenarioRuntimes.Count);
+    Console.WriteLine(ScenarioTasks.Count);
+
     await Task
       .WhenAll(ScenarioTasks)
       .ContinueWith(_ => writer.Complete());
 
     stopwatch.Stop();
+
+    await metricsTask;
 
     return TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds);
   }

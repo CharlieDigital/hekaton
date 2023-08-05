@@ -1,8 +1,6 @@
 
 using CommandLine;
 using CommandLine.Text;
-using Hekaton;
-using Hekaton.Core;
 
 var log = (object message) => Console.WriteLine(message);
 
@@ -20,7 +18,9 @@ var exec = async Task (RuntimeOptions options) => {
     return;
   }
 
-  await manifest.RunAsync();
+  log("Starting to run the manifest...");
+
+  await manifest.Prepare().RunAsync();
 };
 
 await result

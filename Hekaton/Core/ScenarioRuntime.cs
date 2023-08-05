@@ -1,7 +1,6 @@
 
 using System.Diagnostics;
 using System.Threading.Channels;
-using Hekaton.Models;
 
 namespace Hekaton.Core;
 
@@ -60,6 +59,8 @@ public class ScenarioRuntime {
     stopwatch.Start();
 
     try {
+
+      Console.WriteLine($"[EXECUTING EVENT]: {Config.Name} {Identifier}");
 
       // TODO: Execute steps; placeholder delay to simulate
       await Task.Delay(TimeSpan.FromMilliseconds(Random.Shared.Next(3000, 6000)));

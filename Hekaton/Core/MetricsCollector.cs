@@ -1,7 +1,6 @@
 using System.Threading.Channels;
 using Hekaton.Core.Collectors;
 using Hekaton.Core.Renderers;
-using Hekaton.Models;
 
 namespace Hekaton.Core;
 
@@ -62,11 +61,11 @@ public class MetricsCollector {
   }
 
   private void HandleScenario(ScenarioEvent scenario) {
-
+    Console.WriteLine($"Scenario: {scenario.ScenarioName} {scenario.Identifier}");
   }
 
   private void HandleScenarioStart(ScenarioStartEvent start) {
-
+    Console.WriteLine($"  Scenario START: {start.ScenarioName} {start.Identifier}");
   }
 
   private void HandleStep(ScenarioStepEvent step) {

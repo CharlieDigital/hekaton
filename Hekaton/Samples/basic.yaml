@@ -4,9 +4,6 @@ baseUrl: https://www.example.com
 
 scenarios:
 - name: User Browsing Landing Page
-  vusers:
-    initial: 1
-
   steps:
   - name: Load Page
     type: HttpGet
@@ -18,8 +15,6 @@ scenarios:
 
 - name: Admin User Scenario
   delay: 5s
-  vusers:
-    initial: 1
 
   steps:
   - name: Admin User Login
