@@ -41,7 +41,7 @@ scenarios:
     type: HttpGet                       # The type of the step; default is HttpGet
     url: https://www.example.com        # Browse this URL
     generates:                          # Generate these additional requests.
-    - "http://www.example.com/images/logo.png"
+    - "/images/logo.png"                # Uses base URL
     - "http://cdn.example.com/static/app.js"
   - name: Navigate Product Detail Page
     type: HttpGet
@@ -70,7 +70,7 @@ scenarios:
   steps:
   - name: Admin User Login
     type: HttpPost
-    url: https://www.example.com/login
+    url: /login
 
     headers:
       Content-type: application/json    # Include these headers
@@ -93,7 +93,7 @@ scenarios:
 
   - name: API Call Post Login
     type: HttpGet
-    url: https://www.example.com/api/load-user-data
+    url: /api/load-user-data?page=0&size=25
     headers:
       Authorization: __auth             # Include these headers
 ```
