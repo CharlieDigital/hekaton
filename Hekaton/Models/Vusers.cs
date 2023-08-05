@@ -7,7 +7,7 @@ public class Vusers {
   /// <summary>
   /// The initial number of virtual users.
   /// </summary>
-  public int Initial { get; set; } = 0;
+  public int Initial { get; set; }
 
   /// <summary>
   /// The target max number of virtual users.  If this value is less than or equal

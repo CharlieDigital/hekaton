@@ -1,27 +1,27 @@
+using System.Threading.Channels;
 using Hekaton.Models;
+using Hekaton.Utility;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace Hekaton.Core;
-
 /// <summary>
 /// Represents a manifest that defines a set of test scenarios.  The manifest is a
 /// wrapper around the underlying test definition.
 /// </summary>
 public class Manifest {
-  private readonly Test _test;
 
   /// <summary>
   /// Private constructor; use one of the <c>Load</c> methods to create an instance.
   /// </summary>
   private Manifest(Test test) {
-    _test = test;
+    Test = test;
   }
 
   /// <summary>
   /// Getter for the test loaded from the manifest.
   /// </summary>
-  public Test Test => _test;
+  public Test Test { get; }
 
   /// <summary>
   /// Loads a manifest using a fully qualified file path.  This pattern will allow
@@ -54,7 +54,7 @@ public class Manifest {
   /// Returns a tuple that indicates whether the manifest is valid and specific
   /// errors which are encountered during validation.
   /// </returns>
-  public (bool isValid, IEnumerable<string> errors) Validate() {
+  public static (bool isValid, IEnumerable<string> errors) Validate() {
     // TODO: Implement validation.
     return (true, Array.Empty<string>());
   }
@@ -64,9 +64,70 @@ public class Manifest {
   /// execute but does not start the execution.
   /// </summary>
   public Manifest Prepare() {
+    var channel = Channel.CreateUnbounded<StepEvent>();
+    var writer = channel.Writer;
+    var reader = channel.Reader;
 
+    // For each scenario in the manifest, we will create a set of runtime instances
+    // based on the VUser specification.
+    foreach (var scenario in Test.Scenarios) {
 
+    }
 
     return this;
+  }
+
+  /// <summary>
+  /// For a given scenario, resolve the runtime instances that represent the
+  /// virtual users.
+  /// </summary>
+  /// <param name="scenario">The scenario definition.</param>
+  /// <returns>A collection of runtime instances resolved from the definition.</returns>
+  public static IEnumerable<ScenarioRuntime> ResolveScenarioRuntimes(Scenario scenario) {
+    var scenarioDelay = DurationString.Parse(scenario.Delay);
+
+    // Return a single runtime instance.
+    if (scenario.Vusers == null) {
+      yield return new(scenarioDelay);
+      yield break; // !EXIT
+    }
+
+    // Return just the initial users.
+    if (scenario.Vusers.Max <= scenario.Vusers.Initial
+      || scenario.Vusers.Ramp == null) {
+      for (var i = 0; i < scenario.Vusers.Initial; i++) {
+        yield return new(scenarioDelay);
+      }
+
+      yield break; // !EXIT
+    }
+
+    // Use the VUsers definition to resolve a set of users.
+    var rampDuration = DurationString.Parse(scenario.Vusers.Ramp.Every);
+    var rampDelay = TimeSpan.FromSeconds(0);
+    var rampThreshold = scenario.Vusers.Initial;
+
+    // Use the VUsers definition to resolve a set of users.
+    for (var i = 0; i < scenario.Vusers.Max; i++) {
+      if (i < scenario.Vusers.Initial) {
+        // The initial users get created using the scenario delay.
+        yield return new(scenarioDelay);
+      } else {
+        // The subsequent set of users get added with the ramp strategy.
+        if (i > rampThreshold) {
+          rampDelay += rampDuration; // Increase the duration.
+          rampThreshold += scenario.Vusers.Ramp.Add;
+        }
+
+        var computedDelay = scenarioDelay
+          + rampDelay
+          + DurationString.Parse(
+              scenario.Vusers.Ramp.Every,
+              scenario.Vusers.Ramp.Variation
+            );
+
+        yield return new(computedDelay);
+      }
+    }
   }
 }

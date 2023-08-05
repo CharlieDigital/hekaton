@@ -6,9 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Hekaton</RootNamespace>
+    <NoWarn>CA1305;CA1707</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="YamlDotNet" Version="13.1.1" />
   </ItemGroup>
 
