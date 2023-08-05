@@ -17,6 +17,87 @@ Hekaton is designed for the middle ground with a focus on simplicity (define tes
 
 It is built around the concept of `Scenario`s  which represent the actions in a typical user journey through a system.  Rather than focusing on raw RPS, it's designed to allow teams to model real-world user journeys.
 
+## Sample YAML
+
+```yaml
+name: Basic Performance Test
+# Base URL to simplify downstream URLs
+baseUrl: https://www.example.com
+
+# A series of independent scenarios.  Each scenario represents a logical flow
+# or user journey through the system.
+scenarios:
+- name: User Browsing Landing Page
+  vusers:
+    initial: 5                          # Start the scenario with 5 users
+    max: 100                            # And create up to a total of 100 users
+    ramp:
+      every: 10s                        # Every 10 seconds
+      variation: 0.25                   # With a variation of up to 25%
+      add: 1                            # Add 1 user until reaching 10 total
+
+  steps:
+  - name: Load Page
+    type: HttpGet                       # The type of the step; default is HttpGet
+    url: https://www.example.com        # Browse this URL
+    generates:                          # Generate these additional requests.
+    - "http://www.example.com/images/logo.png"
+    - "http://cdn.example.com/static/app.js"
+  - name: Navigate Product Detail Page
+    type: HttpGet
+    url: https://www.example.com/p/123456
+
+- name: Admin User Scenario
+  delay: 100s                           # Delay the start of this scenario 100 seconds
+  vusers:
+    initial: 1                          # Start the scenario wit1 user
+    max: 5                              # And create up to a total of 5 users
+    ramp:
+      every: 1m                         # Every 1 minute
+      variation: 0.10                   # With a variation of up to 10%
+      add: 2                            # Add 2 users until reaching 5
+
+  rows:
+    source: "./users.csv"               # Read this CSV as input to each user
+    read: InOrder                       # Read the rows in order
+    columns:                            # With these columns
+    - username
+    - password
+
+  pause:
+    duration: 5s                        # By default, pause 5 seconds after each step
+    variation: 0.15                     # With a variation of up to 15%
+  steps:
+  - name: Admin User Login
+    type: HttpPost
+    url: https://www.example.com/login
+
+    headers:
+      Content-type: application/json    # Include these headers
+
+    # Include this body with variable substitution
+    body: "{ username: __username, password: __password }"
+
+    pause:                              # Override the default 5s pause
+      duration: 10s
+      variation: 0.05
+
+    # Extract values from the response and assign to variables that can be used
+    # in subsequent steps in the scope of this virtual user.
+    response:
+      headers:
+        __auth: Authorization           # Assign the Authorization header to __auth
+      cookies:
+        __all: ''                       # A special assignment that contains all cookies
+        __someVar: cookieName           # Assigned a specific cookie
+
+  - name: API Call Post Login
+    type: HttpGet
+    url: https://www.example.com/api/load-user-data
+    headers:
+      Authorization: __auth             # Include these headers
+```
+
 ## Objectives
 
 - Easy to model user journeys using simple YAML manifests
