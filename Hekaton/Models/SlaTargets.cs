@@ -18,9 +18,4 @@ public class SlaTargets {
   /// When non-zero, the P95 target for this request.
   /// </summary>
   public decimal P95 { get; set; }
-
-  /// <summary>
-  /// When non-zero, the P99 target for this request.
-  /// </summary>
-  public decimal P99 { get; set; }
 }

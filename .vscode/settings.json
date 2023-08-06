@@ -2,6 +2,7 @@
   "dotnet.defaultSolution": "hekaton.sln",
   "cSpell.words": [
     "Hekaton",
+    "Padder",
     "Runtimes",
     "Vusers"
   ]

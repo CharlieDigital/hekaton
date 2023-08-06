@@ -1,6 +1,7 @@
 
 using CommandLine;
 using CommandLine.Text;
+using Spectre.Console;
 
 var log = (object message) => Console.WriteLine(message);
 
@@ -20,7 +21,9 @@ var exec = async Task (RuntimeOptions options) => {
 
   log("Preparing the manifest...");
 
-  await manifest.Prepare().RunAsync();
+  var duration = await manifest.Prepare().RunAsync();
+
+  AnsiConsole.MarkupLineInterpolated($"[green] ⧖ Total duration: {duration}[/]");
 };
 
 await result

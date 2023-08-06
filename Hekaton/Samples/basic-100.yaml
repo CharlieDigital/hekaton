@@ -10,6 +10,8 @@ scenarios:
   - name: Load Page
     type: HttpGet
     url: /
+    sla:
+      p90: 1850
 
   - name: Navigate Product Detail Page
     type: HttpGet

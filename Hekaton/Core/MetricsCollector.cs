@@ -1,7 +1,6 @@
 using System.Threading.Channels;
 using Hekaton.Core.Collectors;
 using Hekaton.Core.Renderers;
-using Spectre.Console;
 using TDigest;
 
 namespace Hekaton.Core;
@@ -12,17 +11,22 @@ namespace Hekaton.Core;
 /// the results.
 /// </summary>
 public class MetricsCollector {
+  private readonly Test _test;
   private readonly ICollector? _collector;
   private readonly IRenderer? _renderer;
+  private readonly ProgressRenderer _progress;
   private readonly Dictionary<string, AbstractTDigest> _stats;
 
   /// <summary>
   /// Creates an instance configured with the specified metrics collector and
   /// renderer.
   /// </summary>
+  /// <param name="test">The test definition.</param>
   /// <param name="collector">The collector to use.</param>
   /// <param name="renderer">The renderer to use.</param>
-  public MetricsCollector(Collector collector, Renderer renderer) {
+  public MetricsCollector(Test test, Collector collector, Renderer renderer) {
+    _test = test;
+
     _collector = collector switch {
       Collector.InMemory => new InMemoryCollector(),
       Collector.Postgres => throw new NotImplementedException(),
@@ -39,6 +43,8 @@ public class MetricsCollector {
       _ => throw new NotImplementedException()
     };
 
+    _progress = new ProgressRenderer(_test);
+
     _stats = new();
   }
 
@@ -50,37 +56,33 @@ public class MetricsCollector {
   /// individual scenario runtime instances.
   /// </param>
   public async Task StartAsync(ChannelReader<ScenarioEvent> reader) {
+    Task? progress = null;
+
     while (await reader.WaitToReadAsync()) {
       if (reader.TryRead(out var scenarioEvent)) {
-        Action fn = (scenarioEvent as object) switch {
-          ScenarioErrorEvent error => () => HandleError(error),
-          ScenarioStepEvent step => () => HandleStep(step),
-          ScenarioStartEvent count => () => HandleScenarioStart(count),
-          ScenarioCompletedEvent completion => () => HandleScenarioCompleted(completion),
-          _ => () => {}
+        if (!_progress.Started) {
+          progress = _progress.StartAsync();
+        }
+
+        Func<Task> fn = (scenarioEvent as object) switch {
+          ScenarioErrorEvent error => () => HandleErrorAsync(error),
+          ScenarioStepEvent step => () => HandleStepAsync(step),
+          ScenarioStartEvent count => async () => await Task.CompletedTask,
+          ScenarioCompletedEvent completion => () => HandleScenarioCompletedAsync(completion),
+          _ => async () => await Task.CompletedTask
         };
 
-        fn();
+        await fn();
       }
+    }
+
+    if (progress != null) {
+      _progress.Stop();
+      await progress;
     }
   }
 
-  /// <summary>
-  /// Handles the scenario completion event.
-  /// </summary>
-  private void HandleScenarioCompleted(ScenarioCompletedEvent completion) {
-    AnsiConsole.MarkupLineInterpolated($"[green]Scenario Completed: {completion.ScenarioName} {completion.Identifier}[/]");
-  }
-
-  /// <summary>
-  /// Handles the scenario start event.
-  /// </summary>
-  /// <param name="start">The start event of the scenario.</param>
-  private void HandleScenarioStart(ScenarioStartEvent start) {
-    AnsiConsole.MarkupLineInterpolated($"[blue]Scenario Started: {start.ScenarioName} {start.Identifier}[/]");
-  }
-
-  /// <summary>
+ /// <summary>
   /// For each step that executes, we want to accumulate statistics to calculate
   /// the mean, p90, and so on.  Additionally, we want to track completion
   /// percentage.
@@ -89,7 +91,7 @@ public class MetricsCollector {
   /// The step event which identifies the scenario and step which completed
   /// including the timing.
   /// </param>
-  private void HandleStep(ScenarioStepEvent step) {
+  private async Task HandleStepAsync(ScenarioStepEvent step) {
     var key = step.Key;
 
     if (!_stats.ContainsKey(key)) {
@@ -98,6 +100,23 @@ public class MetricsCollector {
     }
 
     _stats[key].Add(step.Timing.TotalMilliseconds);
+
+    await _progress.UpdateStepAsync(
+      step.ScenarioName,
+      step.StepName,
+      _stats[key].Quantile(.50),
+      _stats[key].Quantile(.90),
+      _stats[key].Quantile(.95),
+      _stats[key].GetMin(),
+      _stats[key].GetMax()
+    );
+  }
+
+  /// <summary>
+  /// Handles the scenario completion event.
+  /// </summary>
+  private async Task HandleScenarioCompletedAsync(ScenarioCompletedEvent completion) {
+    await _progress.UpdateScenarioAsync(completion.ScenarioName);
   }
 
   /// <summary>
@@ -106,7 +125,7 @@ public class MetricsCollector {
   /// <param name="error">
   /// The event which encapsulates the error.
   /// </param>
-  private void HandleError(ScenarioErrorEvent error) {
-
+  private async Task HandleErrorAsync(ScenarioErrorEvent error) {
+    await Task.CompletedTask;
   }
 }

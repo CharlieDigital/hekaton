@@ -45,7 +45,6 @@ public class ScenarioRuntime {
   /// </summary>
   public int Identifier { get; }
 
-
   /// <summary>
   /// Initializes the scenario runtime for the VUser.
   /// </summary>
@@ -59,10 +58,27 @@ public class ScenarioRuntime {
     stopwatch.Start();
 
     try {
+      await writer.WriteAsync(new ScenarioStartEvent() {
+        ScenarioName = Config.Name,
+        Identifier = Identifier
+      });
 
+      foreach (var step in Config.Steps) {
+        // TODO: Execute steps; placeholder delay to simulate
 
-      // TODO: Execute steps; placeholder delay to simulate
-      await Task.Delay(TimeSpan.FromMilliseconds(Random.Shared.Next(1000, 3000)));
+        var stepStopwatch = new Stopwatch();
+        stepStopwatch.Start();
+
+        await Task.Delay(TimeSpan.FromMilliseconds(Random.Shared.Next(500, 2000)));
+
+        stepStopwatch.Stop();
+
+        await writer.WriteAsync(new ScenarioStepEvent() {
+          ScenarioName = Config.Name,
+          StepName = step.Name,
+          Timing = stepStopwatch.Elapsed
+        });
+      }
 
       stopwatch.Stop();
 

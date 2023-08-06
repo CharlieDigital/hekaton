@@ -98,15 +98,13 @@ public class Manifest {
     var writer = channel.Writer;
     var reader = channel.Reader;
 
-    var metrics = new MetricsCollector(Test.Collector, Test.Renderer);
+    var metrics = new MetricsCollector(Test, Test.Collector, Test.Renderer);
 
     var stopwatch = new Stopwatch();
     stopwatch.Start();
 
     // Start the metrics collector so it is ready to consume events
     var metricsTask = metrics.StartAsync(reader);
-
-    Console.WriteLine($"Starting scenarios...");
 
     // Start the scenarios in parallel.
     Parallel.ForEach(ScenarioRuntimes,
@@ -115,8 +113,6 @@ public class Manifest {
       },
       r => ScenarioTasks.Add(r.InitAsync(writer))
     );
-
-    Console.WriteLine($"Executing.");
 
     await Task
       .WhenAll(ScenarioTasks)
