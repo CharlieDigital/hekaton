@@ -124,6 +124,23 @@ scenarios:
 - Support comparison of performance metrics over time to identify deviations
 - Distributed processing of requests to simulate traffic from different origins
 
+## Status
+
+||Feature|
+|--|--|
+|✓|Parse YAML test manifest|
+|✓|Write to live console output|
+|𐄂|Perform basic HTTP actions|
+|𐄂|Configure steps with CSV|
+|𐄂|Variable replacement in strings|
+|𐄂|Capture headers from HTTP response|
+|𐄂|Support scripting using JavaScript and JINT|
+|𐄂|Write results to collectors|
+|𐄂|Write errors to collectors|
+|𐄂|Distributed execution|
+|𐄂|Distributed results collection|
+|𐄂|Remote execution (send manifest to remote executor)|
+
 ## Concepts
 
 |Term|Definition|

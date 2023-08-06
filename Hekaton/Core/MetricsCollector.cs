@@ -110,6 +110,8 @@ public class MetricsCollector {
       _stats[key].GetMin(),
       _stats[key].GetMax()
     );
+
+    // TODO: Push to collector as well.
   }
 
   /// <summary>
@@ -117,6 +119,8 @@ public class MetricsCollector {
   /// </summary>
   private async Task HandleScenarioCompletedAsync(ScenarioCompletedEvent completion) {
     await _progress.UpdateScenarioAsync(completion.ScenarioName);
+
+    // TODO: Push to collector as well.
   }
 
   /// <summary>
@@ -127,5 +131,7 @@ public class MetricsCollector {
   /// </param>
   private async Task HandleErrorAsync(ScenarioErrorEvent error) {
     await Task.CompletedTask;
+
+    // TODO: Push to collector as well.
   }
 }
