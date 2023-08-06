@@ -48,6 +48,9 @@ scenarios:
   - name: Load Page
     type: HttpGet                       # The type of the step; default is HttpGet
     url: https://www.example.com        # Browse this URL
+    sla:
+      p90: 1500                         # Target p90 SLA
+      p95: 1600                         # Target P95 SLA
     generates:                          # Generate these additional requests.
     - "/images/logo.png"                # Uses base URL
     - "http://cdn.example.com/static/app.js"
@@ -113,6 +116,14 @@ scenarios:
       Authorization: ___auth             # Include these headers
 ```
 
+## Sample Output
+
+This screenshot shows a sample of the output.
+
+![Screenshot of console](Assets/console-screenshot.png)
+
+Note that the `user_browsing_landing_page.load_page` p90 is rendered in red.  This indicates that the value is above the specified p90 SLA for this request set a 1900ms.
+
 ## Objectives
 
 - Easy to model user journeys using simple YAML manifests
@@ -129,6 +140,7 @@ scenarios:
 ||Feature|
 |--|--|
 |✓|Parse YAML test manifest|
+|✓|Streaming calculation of mean, p90, p95, min, max|
 |✓|Write to live console output|
 |𐄂|Perform basic HTTP actions|
 |𐄂|Configure steps with CSV|
