@@ -21,6 +21,8 @@ scenarios:
     generates:                          # Generate these additional requests.
     - "http://www.example.com/images/logo.png"
     - "http://cdn.example.com/static/app.js"
+    sla:
+      p90: 1.5
   - name: Navigate Product Detail Page
     type: HttpGet
     url: https://www.example.com/p/123456

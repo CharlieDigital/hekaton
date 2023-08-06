@@ -56,4 +56,10 @@ public class Step {
   /// load when -- as an example -- the application my dynamically generate images.
   /// </summary>
   public string[]? Generates { get; set; }
+
+  /// <summary>
+  /// For a given step, the SLA targets that the runtime statistics should be
+  /// measured against.
+  /// </summary>
+  public SlaTargets? Sla { get; set;}
 }

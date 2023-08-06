@@ -1,9 +1,11 @@
-name: Basic Performance Test
+name: Basic Performance Test - 200 Users
 # Base URL to simplify downstream URLs
 baseUrl: https://www.example.com
 
 scenarios:
 - name: User Browsing Landing Page
+  vusers:
+    initial: 100
   steps:
   - name: Load Page
     type: HttpGet
@@ -15,7 +17,8 @@ scenarios:
 
 - name: Admin User Scenario
   delay: 2s
-
+  vusers:
+    initial: 100
   steps:
   - name: Admin User Login
     type: HttpPost

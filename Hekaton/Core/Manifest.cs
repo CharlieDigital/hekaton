@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Channels;
 using YamlDotNet.Serialization;
@@ -30,7 +31,7 @@ public class Manifest {
   /// <summary>
   /// The list of tasks that are started for the runtimes.
   /// </summary>
-  public List<Task> ScenarioTasks { get; } = new();
+  public ConcurrentBag<Task> ScenarioTasks { get; } = new();
 
   /// <summary>
   /// Loads a manifest using a fully qualified file path.  This pattern will allow
@@ -81,6 +82,8 @@ public class Manifest {
       ScenarioRuntimes.AddRange(ResolveScenarioRuntimes(scenario));
     }
 
+    Console.WriteLine($"Resolved scenarios; {ScenarioRuntimes.Count} runtime instances");
+
     return this;
   }
 
@@ -103,6 +106,8 @@ public class Manifest {
     // Start the metrics collector so it is ready to consume events
     var metricsTask = metrics.StartAsync(reader);
 
+    Console.WriteLine($"Starting scenarios...");
+
     // Start the scenarios in parallel.
     Parallel.ForEach(ScenarioRuntimes,
       new() {
@@ -111,8 +116,7 @@ public class Manifest {
       r => ScenarioTasks.Add(r.InitAsync(writer))
     );
 
-    Console.WriteLine(ScenarioRuntimes.Count);
-    Console.WriteLine(ScenarioTasks.Count);
+    Console.WriteLine($"Executing.");
 
     await Task
       .WhenAll(ScenarioTasks)

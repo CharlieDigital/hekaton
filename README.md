@@ -141,10 +141,17 @@ In most applications, there are actions performed by multiple roles within the s
 
 For example, a content management system (CMS) will have publishers creating new content and consumers reading the published content.  These users will operate on different frequencies.  Ideally, we can easily model the load where 10% of the users are performing a publish operation while 90% of the users are reading the published content to simulate our actual traffic distribution.
 
+## Statistics
+
+The statistics are computed using [T-Digest](https://www.sciencedirect.com/science/article/pii/S2665963820300403).  [The C# implementation](https://github.com/Cyral/t-digest-csharp) is a port of a reference Java implementation.  This approach provides an approximation of the P-90 without actually storing all of the values required to produce an exact P-90.
+
 ## Development
 
 ```shell
 # Run tests from root
 dotnet test
+
+# Run samples
+dotnet run -- -f samples/basic.yaml
 
 ```

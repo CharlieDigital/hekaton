@@ -1,6 +1,8 @@
 using System.Threading.Channels;
 using Hekaton.Core.Collectors;
 using Hekaton.Core.Renderers;
+using Spectre.Console;
+using TDigest;
 
 namespace Hekaton.Core;
 
@@ -12,6 +14,7 @@ namespace Hekaton.Core;
 public class MetricsCollector {
   private readonly ICollector? _collector;
   private readonly IRenderer? _renderer;
+  private readonly Dictionary<string, AbstractTDigest> _stats;
 
   /// <summary>
   /// Creates an instance configured with the specified metrics collector and
@@ -35,6 +38,8 @@ public class MetricsCollector {
       Renderer.Markdown => throw new NotImplementedException(),
       _ => throw new NotImplementedException()
     };
+
+    _stats = new();
   }
 
   /// <summary>
@@ -51,7 +56,7 @@ public class MetricsCollector {
           ScenarioErrorEvent error => () => HandleError(error),
           ScenarioStepEvent step => () => HandleStep(step),
           ScenarioStartEvent count => () => HandleScenarioStart(count),
-          ScenarioEvent scenario => () => HandleScenario(scenario),
+          ScenarioCompletedEvent completion => () => HandleScenarioCompleted(completion),
           _ => () => {}
         };
 
@@ -60,18 +65,47 @@ public class MetricsCollector {
     }
   }
 
-  private void HandleScenario(ScenarioEvent scenario) {
-    Console.WriteLine($"Scenario: {scenario.ScenarioName} {scenario.Identifier}");
+  /// <summary>
+  /// Handles the scenario completion event.
+  /// </summary>
+  private void HandleScenarioCompleted(ScenarioCompletedEvent completion) {
+    AnsiConsole.MarkupLineInterpolated($"[green]Scenario Completed: {completion.ScenarioName} {completion.Identifier}[/]");
   }
 
+  /// <summary>
+  /// Handles the scenario start event.
+  /// </summary>
+  /// <param name="start">The start event of the scenario.</param>
   private void HandleScenarioStart(ScenarioStartEvent start) {
-    Console.WriteLine($"  Scenario START: {start.ScenarioName} {start.Identifier}");
+    AnsiConsole.MarkupLineInterpolated($"[blue]Scenario Started: {start.ScenarioName} {start.Identifier}[/]");
   }
 
+  /// <summary>
+  /// For each step that executes, we want to accumulate statistics to calculate
+  /// the mean, p90, and so on.  Additionally, we want to track completion
+  /// percentage.
+  /// </summary>
+  /// <param name="step">
+  /// The step event which identifies the scenario and step which completed
+  /// including the timing.
+  /// </param>
   private void HandleStep(ScenarioStepEvent step) {
+    var key = step.Key;
 
+    if (!_stats.ContainsKey(key)) {
+      // See notes here: https://github.com/Cyral/t-digest-csharp/blob/main/TDigest/MergingDigest.cs#L155C37-L155C46
+      _stats[key] = new MergingDigest(100, 10);
+    }
+
+    _stats[key].Add(step.Timing.TotalMilliseconds);
   }
 
+  /// <summary>
+  /// For each step that fails, we want to accumulate the errors.
+  /// </summary>
+  /// <param name="error">
+  /// The event which encapsulates the error.
+  /// </param>
   private void HandleError(ScenarioErrorEvent error) {
 
   }

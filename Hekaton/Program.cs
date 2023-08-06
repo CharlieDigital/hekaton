@@ -18,7 +18,7 @@ var exec = async Task (RuntimeOptions options) => {
     return;
   }
 
-  log("Starting to run the manifest...");
+  log("Preparing the manifest...");
 
   await manifest.Prepare().RunAsync();
 };

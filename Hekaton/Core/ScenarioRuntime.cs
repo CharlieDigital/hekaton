@@ -60,14 +60,13 @@ public class ScenarioRuntime {
 
     try {
 
-      Console.WriteLine($"[EXECUTING EVENT]: {Config.Name} {Identifier}");
 
       // TODO: Execute steps; placeholder delay to simulate
-      await Task.Delay(TimeSpan.FromMilliseconds(Random.Shared.Next(3000, 6000)));
+      await Task.Delay(TimeSpan.FromMilliseconds(Random.Shared.Next(1000, 3000)));
 
       stopwatch.Stop();
 
-      await writer.WriteAsync(new() {
+      await writer.WriteAsync(new ScenarioCompletedEvent() {
         ScenarioName = Config.Name,
         Identifier = Identifier,
         Timing = TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds)
