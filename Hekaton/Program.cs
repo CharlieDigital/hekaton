@@ -35,7 +35,7 @@ static void DisplayHelp<T>(ParserResult<T> result)
   var helpText = HelpText.AutoBuild(result, h =>
   {
     h.AdditionalNewLineAfterOption = false;
-    h.Heading = "Hekaton Performance Test Tool";
+    h.Heading = "Hekaton Web Performance Test Tool";
     h.Copyright = "Copyright (c) 2023 Charles Chen";
     return HelpText.DefaultParsingErrorsHandler(result, h);
   }, e => e);

@@ -16,4 +16,13 @@ public class Pause {
   /// duration value.
   /// </summary>
   public decimal Variation { get; set; } = 0;
+
+  /// <summary>
+  /// Executes a <c>Task.Delay</c> using the pause configuration.
+  /// </summary>
+  public async Task NowAsync() {
+    var duration = DurationString.Parse(Duration, Variation);
+
+    await Task.Delay(duration);
+  }
 }
